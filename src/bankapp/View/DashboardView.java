@@ -1,38 +1,135 @@
-
 package bankapp.View;
 
-import bankapp.Controller.UserController;
+import bankapp.Controller.AccountController;
+import bankapp.Model.Account;
 import bankapp.Model.User;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+
 public class DashboardView extends JFrame {
-    private JButton btnLogout;
+
+    private JButton btnCekSaldo, btnTransfer, btnSetor, btnTarik, btnMutasi, btnLogout;
 
     public DashboardView(User user) {
         setTitle("Dashboard - Bank App");
-        setSize(400, 300);
+        setSize(600, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new FlowLayout());
+        setLocationRelativeTo(null); // Menempatkan window di tengah layar
+        setResizable(false);
+        setLayout(new BorderLayout());
 
-        // Menampilkan informasi user
-        add(new JLabel("Selamat datang, " + user.getUsername()));
-        add(new JLabel("Saldo Anda: Rp 1,000,000")); // Contoh saldo
-
-        // Tombol Logout
-        btnLogout = new JButton("Logout");
-        add(btnLogout);
-
-        btnLogout.addActionListener(new ActionListener() {
+        // Panel untuk bagian atas (Header)
+        JPanel topPanel = new JPanel() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                new LoginView().setVisible(true); // Kembali ke LoginView
-                dispose(); // Menutup DashboardView
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color color1 = new Color(70, 130, 180);
+                Color color2 = new Color(100, 149, 237);
+                GradientPaint gradient = new GradientPaint(0, 0, color1, 0, getHeight(), color2);
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        topPanel.setPreferredSize(new Dimension(600, 80));
+        topPanel.setLayout(new BorderLayout());
+
+        JLabel lblWelcome = new JLabel("Selamat Datang, " + user.getUsername(), JLabel.CENTER);
+        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblWelcome.setForeground(Color.WHITE);
+        topPanel.add(lblWelcome, BorderLayout.CENTER);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        // Panel untuk tombol fitur
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(2, 3, 15, 15));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Tombol dengan gaya modern
+        btnCekSaldo = createStyledButton("Cek Saldo");
+        btnTransfer = createStyledButton("Transfer");
+        btnSetor = createStyledButton("Setor");
+        btnTarik = createStyledButton("Tarik");
+        btnMutasi = createStyledButton("Mutasi");
+        btnLogout = createStyledButton("Logout");
+
+        buttonPanel.add(btnCekSaldo);
+        buttonPanel.add(btnTransfer);
+        buttonPanel.add(btnSetor);
+        buttonPanel.add(btnTarik);
+        buttonPanel.add(btnMutasi);
+        buttonPanel.add(btnLogout);
+
+        add(buttonPanel, BorderLayout.CENTER);
+
+        // Footer
+        JPanel footerPanel = new JPanel();
+        footerPanel.setPreferredSize(new Dimension(600, 40));
+        footerPanel.setBackground(new Color(240, 240, 240));
+
+        JLabel lblFooter = new JLabel("© 2024 Bank App. All Rights Reserved.", JLabel.CENTER);
+        lblFooter.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblFooter.setForeground(Color.GRAY);
+
+        footerPanel.add(lblFooter);
+        add(footerPanel, BorderLayout.SOUTH);
+
+        // Event handler untuk tombol Cek Saldo
+        btnCekSaldo.addActionListener((ActionEvent e) -> {
+            AccountController accountController = new AccountController();
+            Account account = accountController.getAccountByUserId(user.getId());
+
+            if (account != null) {
+                setVisible(false); // Sembunyikan DashboardView
+                new CekSaldoView(account, this).setVisible(true); // Buka CekSaldoView
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Akun tidak ditemukan!",
+                        "Cek Saldo",
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
+
+        // Event handler untuk tombol Transfer
+        btnTransfer.addActionListener(e -> {
+            setVisible(false); // Sembunyikan DashboardView
+            new TransferView(user.getId(), this).setVisible(true); // Buka TransferView
+        });
+
+        // Event handler untuk tombol Logout
+        btnLogout.addActionListener((ActionEvent e) -> {
+            new LoginView().setVisible(true); // Kembali ke LoginView
+            dispose(); // Menutup DashboardView
+        });
     }
+
+    // Metode untuk membuat tombol dengan gaya modern
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setFocusPainted(false);
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(100, 149, 237));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(70, 130, 180));
+            }
+        });
+        return button;
+    }
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
