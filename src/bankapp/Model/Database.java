@@ -48,13 +48,13 @@ public class Database {
             String createAccountsTableSQL = """
                 CREATE TABLE IF NOT EXISTS Accounts (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
+                    user_id INT NOT NULL UNIQUE, 
                     nomor_rekening VARCHAR(20) NOT NULL UNIQUE,
                     saldo DECIMAL(15, 2) DEFAULT 0.00,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
-                )
+                );
             """;
             statement.executeUpdate(createAccountsTableSQL);
 
