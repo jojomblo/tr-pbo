@@ -103,6 +103,29 @@ public class DashboardView extends JFrame {
             new LoginView().setVisible(true); // Kembali ke LoginView
             dispose(); // Menutup DashboardView
         });
+        btnMutasi.addActionListener(e -> {
+            // Ambil account yang terkait dengan user yang sedang login
+            AccountController accountController = new AccountController();
+            Account account = accountController.getAccountByUserId(user.getId());
+
+            if (account != null) {
+                dispose();  // Menutup DashboardView
+                // Buka MutasiView dengan nomor rekening dari account yang ditemukan
+                new MutasiView(account.getNomorRekening(), this).setVisible(true);
+            } else {
+                // Menampilkan pesan jika account tidak ditemukan
+                JOptionPane.showMessageDialog(this, "Akun tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        btnSetor.addActionListener(e -> {
+            new SetorView(user.getId(),this).setVisible(true);
+            setVisible(false); // Sembunyikan dashboard jika diperlukan
+        });
+        btnTarik.addActionListener(e -> {
+            new TarikView(user.getId(),this).setVisible(true);
+            setVisible(false); // Sembunyikan dashboard jika diperlukan
+        });
+
     }
 
     // Metode untuk membuat tombol dengan gaya modern
@@ -128,8 +151,6 @@ public class DashboardView extends JFrame {
         });
         return button;
     }
-
-
 
     /**
      * This method is called from within the constructor to initialize the form.

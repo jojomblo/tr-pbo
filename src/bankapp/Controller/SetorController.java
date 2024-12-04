@@ -13,10 +13,9 @@ public class SetorController {
      *
      * @param nomorRekening  Nomor rekening yang akan disetor
      * @param nominal        Jumlah yang akan disetor
-     * @param deskripsi      Deskripsi transaksi (opsional)
      * @return Pesan keberhasilan atau kegagalan
      */
-    public String setor(String nomorRekening, double nominal, String deskripsi) {
+    public String setor(String nomorRekening, double nominal) {
         // Validasi nominal
         if (nominal <= 0) {
             return "Nominal setor harus lebih dari 0.";
@@ -49,15 +48,14 @@ public class SetorController {
                         updateSaldoStmt.executeUpdate();
                     }
 
-                    // Catat transaksi setor pada tabel Transactions
+                    // Catat transaksi setor pada tabel Transactions dengan deskripsi hardcoded
                     String insertTransaksiSQL = """
                         INSERT INTO Transactions (account_id, jenis_transaksi, nominal, rekening_tujuan, deskripsi)
-                        VALUES (?, 'Setor', ?, NULL, ?)
+                        VALUES (?, 'Setor', ?, NULL, 'Setoran Uang')
                     """;
                     try (PreparedStatement insertStmt = connection.prepareStatement(insertTransaksiSQL)) {
                         insertStmt.setInt(1, accountId);
                         insertStmt.setDouble(2, nominal);
-                        insertStmt.setString(3, deskripsi);
                         insertStmt.executeUpdate();
                     }
 

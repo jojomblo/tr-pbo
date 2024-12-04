@@ -5,6 +5,7 @@ import bankapp.Model.Database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class TarikController {
 
@@ -13,11 +14,9 @@ public class TarikController {
      *
      * @param nomorRekening Nomor rekening yang akan ditarik
      * @param nominal Jumlah yang akan ditarik
-     * @param deskripsi Deskripsi transaksi (opsional)
      * @return Pesan keberhasilan atau kegagalan
      */
-    public String tarik(String nomorRekening, double nominal, String deskripsi) {
-        // Validasi nominal
+    public String tarik(String nomorRekening, double nominal) {
         if (nominal <= 0) {
             return "Nominal tarik harus lebih dari 0.";
         }
@@ -27,7 +26,6 @@ public class TarikController {
                 return "Koneksi ke database gagal.";
             }
 
-            // Cek apakah rekening sumber valid dan saldo mencukupi
             String cekSaldoSQL = "SELECT id, saldo FROM Accounts WHERE nomor_rekening = ?";
             try (PreparedStatement cekSaldoStmt = connection.prepareStatement(cekSaldoSQL)) {
                 cekSaldoStmt.setString(1, nomorRekening);
@@ -43,10 +41,8 @@ public class TarikController {
                         return "Saldo tidak mencukupi untuk penarikan.";
                     }
 
-                    // Lakukan transaksi tarik
-                    connection.setAutoCommit(false);
+                    connection.setAutoCommit(false); // Mulai transaksi
 
-                    // Kurangi saldo rekening
                     String updateSaldoSQL = "UPDATE Accounts SET saldo = saldo - ? WHERE id = ?";
                     try (PreparedStatement updateSaldoStmt = connection.prepareStatement(updateSaldoSQL)) {
                         updateSaldoStmt.setDouble(1, nominal);
@@ -54,24 +50,23 @@ public class TarikController {
                         updateSaldoStmt.executeUpdate();
                     }
 
-                    // Catat transaksi tarik pada tabel Transactions
                     String insertTransaksiSQL = """
                         INSERT INTO Transactions (account_id, jenis_transaksi, nominal, rekening_tujuan, deskripsi)
-                        VALUES (?, 'Tarik', ?, NULL, ?)
+                        VALUES (?, 'Tarik', ?, NULL, 'Penarikan Uang')
                     """;
                     try (PreparedStatement insertStmt = connection.prepareStatement(insertTransaksiSQL)) {
                         insertStmt.setInt(1, accountId);
                         insertStmt.setDouble(2, nominal);
-                        insertStmt.setString(3, deskripsi);
                         insertStmt.executeUpdate();
                     }
 
-                    // Commit transaksi
-                    connection.commit();
+                    connection.commit(); // Commit transaksi
                     return "Penarikan berhasil.";
                 }
-            } catch (Exception e) {
-                connection.rollback();
+            } catch (SQLException e) {
+                if (!connection.getAutoCommit()) {
+                    connection.rollback(); // Rollback hanya jika transaksi sudah dimulai
+                }
                 e.printStackTrace();
                 return "Terjadi kesalahan saat melakukan tarik.";
             }
