@@ -97,6 +97,19 @@ public class Database {
                     System.out.println("Default user added to Users table.");
                 }
             }
+             
+            String checkAccountsSQL = "SELECT COUNT(*) FROM Accounts";
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(checkAccountsSQL)) {
+                if (resultSet.next() && resultSet.getInt(1) == 0) {
+                    String insertAccountSQL = """
+                        INSERT INTO Accounts (user_id, nomor_rekening, saldo)
+                        VALUES (1, '1234567890', 100000.00)
+                    """;
+                    statement.executeUpdate(insertAccountSQL);
+                    System.out.println("Default account added to Accounts table.");
+                }
+            }
 
             
         } catch (SQLException e) {
